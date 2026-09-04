@@ -126,9 +126,15 @@ def load_settings() -> Settings:
         reply_token_budget=int(os.getenv("REPLY_TOKEN_BUDGET", "0")),
         tool_failure_threshold=int(os.getenv("TOOL_FAILURE_THRESHOLD", "3")),
         tool_circuit_reset_seconds=float(os.getenv("TOOL_CIRCUIT_RESET_SECONDS", "60")),
+        # 开发前端既可能通过 localhost 访问，也可能通过 127.0.0.1 访问。
+        # 两者在浏览器中属于不同 Origin；只放行 localhost 会让 127.0.0.1:5173
+        # 的预检请求返回 400，前端表现为 Failed to fetch。
         cors_origins=[
             origin.strip()
-            for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+            for origin in os.getenv(
+                "CORS_ORIGINS",
+                "http://localhost:5173,http://127.0.0.1:5173",
+            ).split(",")
             if origin.strip()
         ],
         # 实测 qwen3.7-plus 配额池极紧（单发一条也可能 429），默认配上备用模型保底，
